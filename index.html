@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JavaScript Tutor Chatbot</title>
+  <style>
+    body {
+      background: url('johnlandertuburan.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: "Poppins", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    /* Header title */
+    h2 {
+      color: #1e7d32;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 5px rgba(255, 255, 255, 0.6);
+      animation: fadeInDown 1s ease;
+    }
+
+    /* Chatbox container */
+    #chatbox {
+      width: 90%;
+      max-width: 600px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(5px);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0, 128, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      height: 65vh;
+      overflow-y: auto;
+      animation: fadeIn 1s ease;
+    }
+
+    /* Messages */
+    .message {
+      margin: 8px 0;
+      padding: 12px 15px;
+      border-radius: 15px;
+      max-width: 80%;
+      line-height: 1.5;
+      word-wrap: break-word;
+      font-size: 15px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: popIn 0.4s forwards ease;
+    }
+
+    /* User message */
+    .user {
+      background: linear-gradient(135deg, #2e7d32, #66bb6a);
+      color: #fff;
+      align-self: flex-end;
+      border-top-right-radius: 0;
+      box-shadow: 0 3px 6px rgba(46, 125, 50, 0.4);
+      animation-delay: 0.1s;
+    }
+
+    /* Bot message */
+    .bot {
+      background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+      color: #1b5e20;
+      align-self: flex-start;
+      border-top-left-radius: 0;
+      box-shadow: 0 3px 6px rgba(165, 214, 167, 0.5);
+      animation-delay: 0.2s;
+    }
+
+    /* Input area */
+    #inputArea {
+      display: flex;
+      margin-top: 20px;
+      width: 90%;
+      max-width: 600px;
+      animation: fadeInUp 1s ease;
+    }
+
+    /* Input box */
+    #userInput {
+      flex: 1;
+      padding: 12px 15px;
+      border: 2px solid #81c784;
+      border-radius: 25px;
+      outline: none;
+      font-size: 15px;
+      transition: 0.3s;
+    }
+
+    #userInput:focus {
+      border-color: #43a047;
+      box-shadow: 0 0 8px rgba(67, 160, 71, 0.4);
+    }
+
+    /* Send button */
+    #sendBtn {
+      padding: 12px 20px;
+      margin-left: 10px;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s ease;
+      animation: bounceIn 1s;
+    }
+
+    #sendBtn:hover {
+      background-color: #1b5e20;
+      transform: scale(1.1);
+    }
+
+    /* Typing animation */
+    .typing {
+      display: inline-block;
+      width: 30px;
+      text-align: left;
+    }
+
+    .typing span {
+      display: inline-block;
+      height: 8px;
+      width: 8px;
+      background: #66bb6a;
+      border-radius:40%;
+      margin-right: 2px;
+      animation: typingBlink 1.2s infinite ease-in-out;
+    }
+
+    .typing span:nth-child(2) {
+      animation-delay: 0.2s;
+      background: #43a047;
+    }
+    .typing span:nth-child(3) {
+      animation-delay: 0.4s;
+      background: #1b5e20;
+    }
+
+    /* Scrollbar */
+    #chatbox::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #chatbox::-webkit-scrollbar-thumb {
+      background-color: #43a047;
+      border-radius: 10px;
+    }
+
+    /* Animations */
+    @keyframes popIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0.8); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes typingBlink {
+      0%, 80%, 100% { opacity: 0.2; transform: translateY(0); }
+      40% { opacity: 1; transform: translateY(-4px); }
+    }
+
+  h2 {
+   color: white;
+  text-shadow: 2px 2px 4px black;
+}
+
+
+
+  </style>
+</head>
+<body>
+  <h2>JavaScript Tutor Chatbot </h2>
+
+  <div id="chatbox"></div>
+
+  <div id="inputArea">
+    <input type="text" id="userInput" placeholder="Ask me about JavaScript..." />
+    <button id="sendBtn">Send</button>
+  </div>
+
+  <script>
+    let _config = {
+      openAI_api: "https://alcuino-chatbot.azurewebsites.net/api/OpenAIProxy",
+      openAI_model: "gpt-4o-mini",
+      ai_instruction: `You are a helpful and friendly JavaScript tutor.
+      You will ONLY answer questions related to JavaScript programming — such as syntax, DOM manipulation, arrays, loops, functions, ES6, debugging, and logical concepts.
+
+      If the question is NOT about JavaScript, respond with:
+      "<p> Sorry, I only teach JavaScript! Please ask me something related to JS. </p>"
+
+      When answering, explain clearly and step-by-step if needed.
+      Use simple HTML formatting (<p>, <b>, <ul>, <code>) for structure.
+      Always output in HTML format.`,
+      response_id: "",
+    };
+
+    async function sendOpenAIRequest(text) {
+      let requestBody = {
+        model: _config.openAI_model,
+        input: text,
+        instructions: _config.ai_instruction,
+        previous_response_id: _config.response_id,
+      };
+
+      if (_config.response_id.length == 0) {
+        requestBody = {
+          model: _config.openAI_model,
+          input: text,
+          instructions: _config.ai_instruction,
+        };
+      }
+
+      try {
+        const response = await fetch(_config.openAI_api, {
+          method: "POST",
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+        const data = await response.json();
+        let output = data.output[0].content[0].text;
+        _config.response_id = data.id;
+        return output;
+      } catch (error) {
+        console.error("Error calling OpenAI API:", error);
+        throw error;
+      }
+    }
+
+    const chatbox = document.getElementById("chatbox");
+    const userInput = document.getElementById("userInput");
+    const sendBtn = document.getElementById("sendBtn");
+
+    function addMessage(text, sender) {
+      const msg = document.createElement("div");
+      msg.classList.add("message", sender);
+      msg.innerHTML = text;
+      chatbox.appendChild(msg);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function addTypingAnimation() {
+      const typingDiv = document.createElement("div");
+      typingDiv.classList.add("message", "bot");
+      typingDiv.innerHTML = `<div class="typing">
+        <span></span><span></span><span></span>
+      </div>`;
+      chatbox.appendChild(typingDiv);
+      chatbox.scrollTop = chatbox.scrollHeight;
+      return typingDiv;
+    }
+
+    sendBtn.addEventListener("click", async () => {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      addMessage(text, "user");
+      userInput.value = "";
+
+      const typingDiv = addTypingAnimation();
+
+      try {
+        const answer = await sendOpenAIRequest(text);
+        typingDiv.innerHTML = answer;
+      } catch (err) {
+        typingDiv.innerHTML = "❌ Sorry, something went wrong.";
+      }
+    });
+
+    userInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendBtn.click();
+    });
+  </script>
+</body>
+</html>
